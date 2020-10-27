@@ -1,0 +1,25 @@
+app: appDemo
+stage: dev
+
+component: framework
+name: nextjsDemo
+
+inputs:
+  framework: next
+  src:
+    dist: ./
+    hook: npm run build
+    exclude:
+      - .env
+  region: ap-guangzhou
+  faas:
+    runtime: Nodejs10.15
+  apigw:
+    protocols:
+      - http
+      - https
+    environment: release
+  static:
+    cos:
+      replace: true
+      bucket: nextjs-demo

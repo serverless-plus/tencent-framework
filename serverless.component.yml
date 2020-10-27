@@ -12,15 +12,21 @@ webDeployable: true
 
 actions:
   deploy:
-    definition: Deploy your web framework application to faas
+    definition: Deploy web framework application
     inputs:
       framework:
         type: string
         required: true
         allow:
           - express
+          - koa
+          - egg
+          - next
+          - nuxt
           - laravel
+          - thinkphp
           - flask
+          - django
       src:
         type: src
         required: true
@@ -136,5 +142,78 @@ actions:
             description: Name of API Gateway
             default: serverless
             regex: '^[a-zA-Z][a-zA-Z0-9(_)]{0,48}[a-zA-Z0-9]?$'
+      static:
+        type: object
+        keys:
+          cos:
+            type: object
+            keys:
+              bucket:
+                type: string
+                description: The name of cos
+                regex: '^[a-z][a-z0-9-]{0,48}[a-z0-9]$'
+              acl:
+                type: object
+              sources:
+                type: array
+                items:
+                  - type: object
+                    keys:
+                      src:
+                        type: string
+                        required: true
+                      targetDir:
+                        type: string
+                        required: true
+          cdn:
+            type: object
+            keys:
+              area:
+                type: string
+                allow:
+                  - mainland
+                  - overseas
+                  - global
+              domain:
+                type: string
+                required: true
+              autoRefresh:
+                type: boolean
+              refreshType:
+                type: string
+                allow:
+                  - delete
+                  - flush
+              forceRedirect:
+                type: object
+                keys:
+                  switch:
+                    type: string
+                    allow:
+                      - on
+                      - off
+                  redirectType:
+                    type: string
+                    allow:
+                      - http
+                      - https
+                  redirectStatusCode:
+                    type: number
+                    allow:
+                      - 301
+                      - 302
+              https:
+                type: object
+                keys:
+                  http2:
+                    type: string
+                    allow:
+                      - on
+                      - off
+                  certId:
+                    type: string
+                    required: true
   remove:
-    definition: Remove your framework.js application
+    definition: Remove web framework application
+  metrics:
+    definition: Get metrics of web framework application
