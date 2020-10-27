@@ -1,5 +1,7 @@
 # Serverless Framework Component
 
+> 此组件非腾讯云官方组件，很多特性是实验性的。如果有相关疑问，请提交 issue 或者 pr。
+
 Serverless Web 框架组件，可以方便将传统 Web 框架部署到腾讯云 Serverless 架构上。
 
 目前支持框架：
