@@ -23,6 +23,7 @@ actions:
           - egg
           - next
           - nuxt
+          - nest
           - laravel
           - thinkphp
           - flask

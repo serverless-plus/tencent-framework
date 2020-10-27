@@ -18,6 +18,13 @@ const frameworks = {
     runtime: 'Nodejs10.15',
     defaultEntryFile: 'sls.js'
   },
+  nest: {
+    injectSlsSdk: true,
+    templateUrl:
+      'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/nestjs-demo.zip',
+    runtime: 'Nodejs10.15',
+    defaultEntryFile: 'sls.js'
+  },
   next: {
     injectSlsSdk: true,
     templateUrl:

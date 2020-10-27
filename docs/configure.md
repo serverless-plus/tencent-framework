@@ -110,7 +110,7 @@ inputs:
 | [apigw](#API-网关配置)           |  否  |                | API 网关配置                                             |
 | [staticConf](#静态资源-CDN-配置) |  否  |                | 静态资源 CDN 配置                                        |
 
-> 注意：目前 `framework` 支持 Web 框架有 `express`、`koa`、`egg`、`next`、`nuxt`、`laravel`、`thinkphp`、`flask`。
+> 注意：目前 `framework` 支持 Web 框架有 `express`、`koa`、`egg`、`next`、`nuxt`、`nest`、`laravel`、`thinkphp`、`flask`。
 
 ## 执行目录
 

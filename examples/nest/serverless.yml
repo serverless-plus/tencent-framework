@@ -1,0 +1,18 @@
+app: appDemo
+stage: dev
+
+component: framework@dev
+name: nestDemo
+
+inputs:
+  framework: nest
+  src:
+    src: ./
+    exclude:
+      - .env
+  faas:
+    name: framework-demo
+  apigw:
+    protocols:
+      - http
+      - https
