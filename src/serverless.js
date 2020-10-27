@@ -313,12 +313,12 @@ class ServerlessComponent extends Component {
       namespace: faasState.namespace
     })
     // if disable apigw, no need to remove
-    if (apigwState.isDisabled !== true) {
+    if (apigwState.isDisabled !== true && apigwState.id) {
       await apigw.remove({
         created: true,
         serviceId: apigwState.id,
         environment: apigwState.environment,
-        apiList: apigwState.apis,
+        apiList: apigwState.apis || [],
         customDomains: apigwState.customDomains
       })
     }
