@@ -8,7 +8,7 @@ const config = {
   testEnvironment: 'node',
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(js|ts)$',
   // testRegex: '(/__tests__/ci/ci.ssr\.(test|spec))\\.(js|ts)$',
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/__tests__/utils/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/__tests__/utils/', '/examples/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
 }
 
