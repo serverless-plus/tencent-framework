@@ -1,0 +1,20 @@
+app: appDemo
+stage: dev
+
+component: framework@dev
+name: laravelDemo
+
+inputs:
+  framework: laravel
+  src: ./
+  region: ap-guangzhou
+  faas:
+    runtime: Php7
+    environment:
+      variables:
+        APP_ENV: production
+  apigw:
+    protocols:
+      - http
+      - https
+    environment: release
