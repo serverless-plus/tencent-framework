@@ -3,6 +3,7 @@ const fs = require('fs')
 const { Cos } = require('tencent-component-toolkit')
 const download = require('download')
 const { TypeError } = require('tencent-component-toolkit/src/utils/error')
+const AdmZip = require('adm-zip')
 
 /*
  * Generates a random id
@@ -66,6 +67,14 @@ const getDirFiles = (dirPath) => {
   return temp
 }
 
+const removeAppid = (str, appid) => {
+  const suffix = `-${appid}`
+  if (!str || str.indexOf(suffix) === -1) {
+    return str
+  }
+  return str.slice(0, -suffix.length)
+}
+
 const validateTraffic = (framework, num) => {
   if (getType(num) !== 'Number') {
     throw new TypeError(`PARAMETER_${framework.toUpperCase()}_TRAFFIC`, 'traffic must be a number')
@@ -106,6 +115,7 @@ const getCodeZipPath = async (instance, inputs) => {
   return zipPath
 }
 
+// get files/dirs need to inject to project code
 const getInjection = (instance, framework) => {
   const { CONFIGS } = instance
   let injectFiles = {}
@@ -177,6 +187,113 @@ const uploadCodeToCos = async (instance, appId, credentials, inputs, region) => 
   return {
     bucket: bucketName,
     object: objectName
+  }
+}
+
+const prepareStaticCosInputs = async (instance, inputs, appId, codeZipPath) => {
+  const { CONFIGS, framework } = instance
+  try {
+    const staticCosInputs = []
+    const { cos: cosConfig } = inputs
+    const sources = cosConfig.sources || CONFIGS.defaultStatics
+    const { bucket } = cosConfig
+    // remove user append appid
+    const bucketName = removeAppid(bucket, appId)
+    const staticPath = `/tmp/${generateId()}`
+    const codeZip = new AdmZip(codeZipPath)
+    const entries = codeZip.getEntries()
+
+    // traverse sources, generate static directory and deploy to cos
+    for (let i = 0; i < sources.length; i++) {
+      const curSource = sources[i]
+      const entryName = `${curSource.src}`
+      let exist = false
+      entries.forEach((et) => {
+        if (et.entryName.indexOf(entryName) === 0) {
+          codeZip.extractEntryTo(et, staticPath, true, true)
+          exist = true
+        }
+      })
+      if (exist) {
+        const cosInputs = {
+          force: true,
+          protocol: cosConfig.protocol,
+          bucket: `${bucketName}-${appId}`,
+          src: `${staticPath}/${entryName}`,
+          keyPrefix: curSource.targetDir || '/',
+          acl: {
+            permissions: 'public-read',
+            grantRead: '',
+            grantWrite: '',
+            grantFullControl: ''
+          }
+        }
+
+        if (cosConfig.acl) {
+          cosInputs.acl = {
+            permissions: cosConfig.acl.permissions || 'public-read',
+            grantRead: cosConfig.acl.grantRead || '',
+            grantWrite: cosConfig.acl.grantWrite || '',
+            grantFullControl: cosConfig.acl.grantFullControl || ''
+          }
+        }
+
+        staticCosInputs.push(cosInputs)
+      }
+    }
+    return {
+      bucket: `${bucketName}-${appId}`,
+      staticCosInputs
+    }
+  } catch (e) {
+    throw new TypeError(`UTILS_${framework}_prepareStaticCosInputs`, e.message, e.stack)
+  }
+}
+
+const prepareStaticCdnInputs = async (instance, inputs, origin) => {
+  const { CONFIGS, framework } = instance
+  try {
+    const { cdn: cdnConfig } = inputs
+    const cdnInputs = {
+      async: true,
+      area: cdnConfig.area || 'mainland',
+      domain: cdnConfig.domain,
+      serviceType: 'web',
+      origin: {
+        origins: [origin],
+        originType: 'cos',
+        originPullProtocol: 'https'
+      },
+      autoRefresh: true,
+      ...cdnConfig
+    }
+    if (cdnConfig.https) {
+      // using these default configs, for making user's config more simple
+      cdnInputs.forceRedirect =
+        cdnConfig.https.forceRedirect || CONFIGS.defaultcdnConfig.forceRedirect
+      if (!cdnConfig.https.certId) {
+        throw new TypeError(`PARAMETER_${framework}_HTTPS`, 'https.certId is required')
+      }
+      cdnInputs.https = {
+        ...CONFIGS.defaultcdnConfig.https,
+        ...{
+          http2: cdnConfig.https.http2 || 'on',
+          certInfo: {
+            certId: cdnConfig.https.certId
+          }
+        }
+      }
+    }
+    if (cdnInputs.autoRefresh) {
+      cdnInputs.refreshCdn = {
+        flushType: cdnConfig.refreshType || 'delete',
+        urls: [`http://${cdnInputs.domain}`, `https://${cdnInputs.domain}`]
+      }
+    }
+
+    return cdnInputs
+  } catch (e) {
+    throw new TypeError(`UTILS_${framework}_prepareStaticCdnInputs`, e.message, e.stack)
   }
 }
 
@@ -300,5 +417,7 @@ module.exports = {
   uploadCodeToCos,
   capitalString,
   getDefaultProtocol,
-  prepareInputs
+  prepareInputs,
+  prepareStaticCosInputs,
+  prepareStaticCdnInputs
 }

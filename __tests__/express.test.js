@@ -1,9 +1,6 @@
 const path = require('path')
-require('dotenv').config({
-  path: path.join(__dirname, '..', '.env.test')
-})
 const { generateId, getServerlessSdk } = require('./utils')
-const execSync = require('child_process').execSync
+const { execSync } = require('child_process')
 
 // set enough timeout for deployment to finish
 jest.setTimeout(300000)
@@ -31,7 +28,7 @@ const instanceYaml = {
 const credentials = {
   tencent: {
     SecretId: process.env.TENCENT_SECRET_ID,
-    SecretKey: process.env.TENCENT_SECRET_KEY,
+    SecretKey: process.env.TENCENT_SECRET_KEY
   }
 }
 
@@ -54,7 +51,12 @@ it('should successfully deploy express app', async () => {
 
 it('should successfully remove express app', async () => {
   await sdk.remove(instanceYaml, credentials)
-  result = await sdk.getInstance(instanceYaml.org, instanceYaml.stage, instanceYaml.app, instanceYaml.name)
+  const result = await sdk.getInstance(
+    instanceYaml.org,
+    instanceYaml.stage,
+    instanceYaml.app,
+    instanceYaml.name
+  )
 
   expect(result.instance.instanceStatus).toEqual('inactive')
 })

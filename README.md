@@ -4,15 +4,15 @@ Serverless Web 框架组件，可以方便将传统 Web 框架部署到腾讯云
 
 目前支持框架：
 
-- [x] Express
-- [ ] Koa
-- [ ] Egg.js
-- [ ] Next.js
-- [ ] Nuxt.js
+- [x] Express.js
+- [x] Koa.js
+- [x] Egg.js
+- [x] Next.js
+- [x] Nuxt.js
+- [x] Laravel
+- [x] ThinkPHP
 - [x] Flask
 - [ ] Django
-- [x] Laravel
-- [ ] ThinkPHP
 
 ### 安装
 
@@ -33,12 +33,14 @@ $ cd example
 
 ### 配置
 
+**现在还是开发阶段，版本为 `framework@dev`**。
+
 以下是 Express 框架的 `serverless.yml`配置示例：
 
 ```yml
 app: serverless
 stage: dev
-component: framework
+component: framework@dev
 name: express-demo
 
 inputs:

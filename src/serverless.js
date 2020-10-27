@@ -1,7 +1,14 @@
 const { Component } = require('@serverless/core')
-const { Scf, Apigw, Cns, Cam, Metrics } = require('tencent-component-toolkit')
+const { Scf, Apigw, Cns, Cam, Metrics, Cos, Cdn } = require('tencent-component-toolkit')
 const { TypeError } = require('tencent-component-toolkit/src/utils/error')
-const { uploadCodeToCos, getDefaultProtocol, prepareInputs, deepClone } = require('./utils')
+const {
+  uploadCodeToCos,
+  getDefaultProtocol,
+  prepareInputs,
+  deepClone,
+  prepareStaticCosInputs,
+  prepareStaticCdnInputs
+} = require('./utils')
 const initConfigs = require('./config')
 
 class ServerlessComponent extends Component {
@@ -170,6 +177,62 @@ class ServerlessComponent extends Component {
     return apigwOutputs
   }
 
+  // deploy static to cos, and setup cdn
+  async deployStatic(credentials, inputs, region) {
+    const { state, framework } = this
+    const { zipPath } = state
+    const appId = this.getAppId()
+    const deployStaticOutpus = {}
+
+    if (zipPath) {
+      console.log(`Deploy static for ${framework} application`)
+      // 1. deploy to cos
+      const { staticCosInputs, bucket } = await prepareStaticCosInputs(this, inputs, appId, zipPath)
+
+      const cos = new Cos(credentials, region)
+      const cosOutput = {
+        region
+      }
+      // flush bucket
+      if (inputs.cos.replace) {
+        await cos.flushBucketFiles(bucket)
+      }
+      for (let i = 0; i < staticCosInputs.length; i++) {
+        const curInputs = staticCosInputs[i]
+        console.log(`Starting deploy directory ${curInputs.src} to cos bucket ${curInputs.bucket}`)
+        const deployRes = await cos.deploy(curInputs)
+        cosOutput.origin = `${curInputs.bucket}.cos.${region}.myqcloud.com`
+        cosOutput.bucket = deployRes.bucket
+        cosOutput.url = `https://${curInputs.bucket}.cos.${region}.myqcloud.com`
+        console.log(`Deploy directory ${curInputs.src} to cos bucket ${curInputs.bucket} success`)
+      }
+      deployStaticOutpus.cos = cosOutput
+
+      // 2. deploy cdn
+      if (inputs.cdn) {
+        const cdn = new Cdn(credentials)
+        const cdnInputs = await prepareStaticCdnInputs(this, inputs, cosOutput.cosOrigin)
+        console.log(`Starting deploy cdn ${cdnInputs.domain}`)
+        const cdnDeployRes = await cdn.deploy(cdnInputs)
+        const protocol = cdnInputs.https ? 'https' : 'http'
+        const cdnOutput = {
+          domain: cdnDeployRes.domain,
+          url: `${protocol}://${cdnDeployRes.domain}`,
+          cname: cdnDeployRes.cname
+        }
+        deployStaticOutpus.cdn = cdnOutput
+
+        console.log(`Deploy cdn ${cdnInputs.domain} success`)
+      }
+
+      console.log(`Deployed static for ${framework} application successfully`)
+
+      return deployStaticOutpus
+    }
+
+    return null
+  }
+
   async deploy(inputs) {
     this.initialize(inputs.framework)
     const { __TmpCredentials, CONFIGS } = this
@@ -197,12 +260,40 @@ class ServerlessComponent extends Component {
     outputs['faas'] = faasOutputs
     outputs['apigw'] = apigwOutputs
 
+    // start deploy static cdn
+    if (inputs.static) {
+      outputs.static = await this.deployStatic(__TmpCredentials, inputs.static, region)
+    }
+
     // this config for online debug
     this.state.region = region
     this.state.namespace = faasConfig.namespace
     this.state.lambdaArn = faasConfig.name
 
     return outputs
+  }
+
+  async removeStatic(credentials) {
+    // remove static
+    const { region, static: staticState } = this.state
+    if (staticState) {
+      console.log(`Removing static config`)
+      // 1. remove cos
+      if (staticState.cos) {
+        const cos = new Cos(credentials, region)
+        await cos.remove(staticState.cos)
+      }
+      // 2. remove cdn
+      if (staticState.cdn) {
+        const cdn = new Cdn(credentials)
+        try {
+          await cdn.remove(staticState.cdn)
+        } catch (e) {
+          // no op
+        }
+      }
+      console.log(`Remove static config success`)
+    }
   }
 
   async remove(inputs) {
@@ -231,6 +322,9 @@ class ServerlessComponent extends Component {
         customDomains: apigwState.customDomains
       })
     }
+
+    // remove static
+    await this.removeStatic(__TmpCredentials)
 
     this.state = {}
 

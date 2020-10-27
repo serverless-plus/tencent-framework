@@ -19,8 +19,14 @@ actions:
         required: true
         allow:
           - express
+          - koa
+          - egg
+          - next
+          - nuxt
           - laravel
+          - thinkphp
           - flask
+          - django
       src:
         type: src
         required: true
