@@ -1,6 +1,7 @@
 # Serverless Framework Component
 
-[![Build Status](https://github.com/serverless-plus/tencent-framework/workflows/Test/badge.svg?branch=master)](https://github.com/serverless-plus/tencent-framework/actions?query=workflow:Test+branch:master)
+<!-- [![Build Status](https://github.com/serverless-plus/tencent-framework/workflows/Test/badge.svg?branch=master)](https://github.com/serverless-plus/tencent-framework/actions?query=workflow:Test+branch:master) -->
+
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 > 此组件非腾讯云官方组件，很多特性是实验性的。如果有相关疑问，请提交 issue 或者 pr。
@@ -14,6 +15,7 @@ Serverless Web 框架组件，可以方便将传统 Web 框架部署到腾讯云
 - [x] Egg.js
 - [x] Next.js
 - [x] Nuxt.js
+- [x] Nest.js
 - [x] Laravel
 - [x] ThinkPHP
 - [x] Flask
@@ -76,7 +78,7 @@ inputs:
 
 [全量配置](./docs/configure.md)
 
-> 注意：`inputs` 中 `framework` 参数是必须的，组件将根据该参数来对 Web 框架项目进行自动化部署。
+> 注意：`inputs` 中 `framework` 参数是必须的，组件将根据该参数来对 Web 框架项目进行自动化部署，目前 `framework` 支持 Web 框架有 `express`、`koa`、`egg`、`next`、`nuxt`、`nest`、`laravel`、`thinkphp`、`flask`。
 
 ## 部署
 
