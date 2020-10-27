@@ -5,7 +5,7 @@ const { execSync } = require('child_process')
 // set enough timeout for deployment to finish
 jest.setTimeout(300000)
 
-const srcPath = path.join(__dirname, '..', 'example/express')
+const srcPath = path.join(__dirname, '..', 'examples/express')
 
 // the yaml file we're testing against
 const instanceYaml = {
