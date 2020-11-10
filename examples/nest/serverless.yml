@@ -1,7 +1,7 @@
 app: appDemo
 stage: dev
 
-component: framework@dev
+component: framework
 name: nestDemo
 
 inputs:

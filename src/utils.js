@@ -190,7 +190,7 @@ const uploadCodeToCos = async (instance, appId, credentials, inputs, region) => 
   }
 }
 
-const prepareStaticCosInputs = async (instance, inputs, appId, codeZipPath) => {
+const initializeStaticCosInputs = async (instance, inputs, appId, codeZipPath) => {
   const { CONFIGS, framework } = instance
   try {
     const staticCosInputs = []
@@ -246,11 +246,11 @@ const prepareStaticCosInputs = async (instance, inputs, appId, codeZipPath) => {
       staticCosInputs
     }
   } catch (e) {
-    throw new TypeError(`UTILS_${framework}_prepareStaticCosInputs`, e.message, e.stack)
+    throw new TypeError(`UTILS_${framework}_initializeStaticCosInputs`, e.message, e.stack)
   }
 }
 
-const prepareStaticCdnInputs = async (instance, inputs, origin) => {
+const initializeStaticCdnInputs = async (instance, inputs, origin) => {
   const { CONFIGS, framework } = instance
   try {
     const { cdn: cdnConfig } = inputs
@@ -293,107 +293,103 @@ const prepareStaticCdnInputs = async (instance, inputs, origin) => {
 
     return cdnInputs
   } catch (e) {
-    throw new TypeError(`UTILS_${framework}_prepareStaticCdnInputs`, e.message, e.stack)
+    throw new TypeError(`UTILS_${framework}_initializeStaticCdnInputs`, e.message, e.stack)
   }
 }
 
-const prepareInputs = async (instance, inputs = {}) => {
-  const { CONFIGS, framework, state } = instance
-  const fromClientRemark = `tencent-${framework}`
-  const region = inputs.region || CONFIGS.region
-
+// compatible code for old configs
+// transfer yaml config to sdk inputs
+const yamlToSdkInputs = ({ instance, sourceInputs, faasConfig, apigwConfig }) => {
+  const { framework, state } = instance
   // chenck state function name
   const stateFaasName = state.faas && state.faas.name
+  const { functionConf = {}, apigatewayConf = {} } = sourceInputs
+  // transfer faas config
+  faasConfig.name =
+    faasConfig.name ||
+    sourceInputs.functionName ||
+    stateFaasName ||
+    getDefaultFunctionName(framework)
 
-  const tempFaasConfig = inputs.faas || {}
-  const faasConfig = Object.assign(tempFaasConfig, {
-    fromClientRemark,
-    publish: inputs.publish, // get from command
-    traffic: inputs.traffic, // get from command
-    region: region,
-    code: {
-      src: inputs.src,
-      bucket: inputs.srcOriginal && inputs.srcOriginal.bucket,
-      object: inputs.srcOriginal && inputs.srcOriginal.object
-    },
-    name: tempFaasConfig.name || stateFaasName || getDefaultFunctionName(),
-    role: tempFaasConfig.role || '',
-    handler: tempFaasConfig.handler || CONFIGS.handler,
-    runtime: tempFaasConfig.runtime || CONFIGS.runtime,
-    namespace: tempFaasConfig.namespace || CONFIGS.namespace,
-    description: tempFaasConfig.description || CONFIGS.description,
-    layers: tempFaasConfig.layers || [],
-    cfs: tempFaasConfig.cfs || [],
-    lastVersion: state.lastVersion,
-    timeout: tempFaasConfig.timeout || CONFIGS.timeout,
-    memorySize: tempFaasConfig.memorySize || CONFIGS.memorySize,
-    tags: tempFaasConfig.tags
-  })
-
-  // validate traffic
-  if (inputs.traffic !== undefined) {
-    validateTraffic(framework, inputs.traffic)
-  }
-  faasConfig.needSetTraffic = inputs.traffic !== undefined && faasConfig.lastVersion
-
-  const slsEntryFile = inputs.entryFile || CONFIGS.defaultEntryFile
-  instance.slsEntryFile = slsEntryFile
-  if (tempFaasConfig.environment) {
-    faasConfig.environment = tempFaasConfig.environment
-    faasConfig.environment.variables = faasConfig.environment.variables || {}
-    faasConfig.environment.variables.SERVERLESS = '1'
-    faasConfig.environment.variables.SLS_ENTRY_FILE = slsEntryFile
+  if (faasConfig.environments) {
+    // this is new config array to object
+    const environment = deepClone(faasConfig.environments)
+    if (getType(environment) === 'Array') {
+      faasConfig.environment = {
+        variables: {
+          SERVERLESS: '1',
+          SLS_ENTRY_FILE: instance.slsEntryFile
+        }
+      }
+      environment.forEach((item) => {
+        faasConfig.environment.variables[item.envKey] = item.envVal
+      })
+    } else {
+      faasConfig.environment = {
+        variables: environment.variables || {}
+      }
+      faasConfig.environment.variables.SERVERLESS = '1'
+      faasConfig.environment.variables.SLS_ENTRY_FILE = instance.slsEntryFile
+    }
   } else {
     faasConfig.environment = {
       variables: {
         SERVERLESS: '1',
-        SLS_ENTRY_FILE: inputs.entryFile || CONFIGS.defaultEntryFile
+        SLS_ENTRY_FILE: instance.slsEntryFile
       }
     }
   }
 
-  if (tempFaasConfig.vpc) {
-    faasConfig.vpcConfig = tempFaasConfig.vpc
+  if (faasConfig.vpc || functionConf.vpcConfig) {
+    faasConfig.vpcConfig = faasConfig.vpc || functionConf.vpcConfig
   }
 
-  const tempApigwConfig = inputs.apigw ? inputs.apigw : {}
-  const apigwConfig = Object.assign(tempApigwConfig, {
-    serviceId: tempApigwConfig.id,
-    region: region,
-    isDisabled: tempApigwConfig.isDisabled === true,
-    fromClientRemark: fromClientRemark,
-    serviceName: tempApigwConfig.name || getDefaultServiceName(instance),
-    serviceDesc: tempApigwConfig.description || getDefaultServiceDescription(instance),
-    protocols: tempApigwConfig.protocols || ['http'],
-    environment: tempApigwConfig.environment || 'release',
-    api: tempApigwConfig.api || {
+  if (faasConfig.tags) {
+    const tags = deepClone(faasConfig.tags)
+    if (getType(tags) === 'Array') {
+      faasConfig.tags = {}
+      tags.forEach((item) => {
+        faasConfig.tags[item.tagKey] = item.tagVal
+      })
+    }
+  }
+
+  faasConfig.layers = faasConfig.layers || sourceInputs.layers || []
+
+  // transfer apigw config
+  const stateApigwId = state.apigw && (state.apigw.id || state.apigw.serviceId)
+  apigwConfig.serviceId =
+    apigwConfig.serviceId || apigatewayConf.serviceId || sourceInputs.serviceId || stateApigwId
+  apigwConfig.serviceName =
+    apigwConfig.serviceName ||
+    apigatewayConf.serviceName ||
+    sourceInputs.serviceName ||
+    getDefaultServiceName(instance)
+  apigwConfig.serviceDesc =
+    apigwConfig.serviceDesc || apigatewayConf.serviceDesc || getDefaultServiceDescription(instance)
+
+  apigwConfig.endpoints = [
+    {
       path: '/',
+      apiName: 'index',
       method: 'ANY',
-      name: 'index'
-    },
-    function: tempApigwConfig.function || {}
-  })
-  if (!apigwConfig.endpoints) {
-    apigwConfig.endpoints = [
-      {
-        path: tempApigwConfig.api.path || '/',
-        apiName: tempApigwConfig.api.name || 'index',
-        method: tempApigwConfig.api.method || 'ANY',
-        enableCORS: tempApigwConfig.cors,
-        serviceTimeout: tempApigwConfig.timeout,
-        function: {
-          isIntegratedResponse: true,
-          functionName: faasConfig.name,
-          functionNamespace: faasConfig.namespace,
-          functionQualifier: tempApigwConfig.function.qualifier || '$DEFAULT'
-        }
+      enableCORS: apigwConfig.cors || apigatewayConf.enableCORS,
+      serviceTimeout: apigwConfig.timeout || apigatewayConf.serviceTimeout,
+      function: {
+        isIntegratedResponse: true,
+        functionQualifier: apigwConfig.qualifier || '$DEFAULT',
+        functionName: faasConfig.name,
+        functionNamespace: faasConfig.namespace
       }
-    ]
-  }
+    }
+  ]
 
-  // using this transformation to simplize yaml config
-  if (tempApigwConfig.customDomains && tempApigwConfig.customDomains.length > 0) {
-    apigwConfig.customDomains = tempApigwConfig.customDomains.map((item) => {
+  if (apigwConfig.customDomains && apigwConfig.customDomains.length > 0) {
+    apigwConfig.customDomains = apigwConfig.customDomains.map((item) => {
+      if (item.certificateId) {
+        // old config, directly return
+        return item
+      }
       return {
         domain: item.domain,
         certificateId: item.certId,
@@ -404,10 +400,61 @@ const prepareInputs = async (instance, inputs = {}) => {
     })
   }
 
+  return { faasConfig, apigwConfig }
+}
+
+const initializeInputs = async (instance, inputs = {}) => {
+  const { CONFIGS, framework } = instance
+  const region = inputs.region || CONFIGS.region
+
+  const tempFaasConfig = inputs.faas || inputs.functionConf || {}
+  const faasConfig = Object.assign(tempFaasConfig, {
+    region: region,
+    code: {
+      src: inputs.src,
+      bucket: inputs.srcOriginal && inputs.srcOriginal.bucket,
+      object: inputs.srcOriginal && inputs.srcOriginal.object
+    },
+    name: tempFaasConfig.name,
+    role: tempFaasConfig.role || '',
+    handler: tempFaasConfig.handler || CONFIGS.handler,
+    runtime: tempFaasConfig.runtime || CONFIGS.runtime,
+    namespace: tempFaasConfig.namespace || CONFIGS.namespace,
+    description: tempFaasConfig.description || CONFIGS.description,
+    layers: tempFaasConfig.layers,
+    cfs: tempFaasConfig.cfs || [],
+    timeout: tempFaasConfig.timeout || CONFIGS.timeout,
+    memorySize: tempFaasConfig.memorySize || CONFIGS.memorySize,
+    environments: tempFaasConfig.environments || tempFaasConfig.environment,
+    tags: tempFaasConfig.tags || inputs.tags,
+    publish: inputs.publish,
+    traffic: inputs.traffic
+  })
+
+  // validate traffic
+  if (inputs.traffic !== undefined) {
+    validateTraffic(framework, inputs.traffic)
+  }
+  faasConfig.needSetTraffic = inputs.traffic !== undefined && faasConfig.lastVersion
+
+  const slsEntryFile = inputs.entryFile || CONFIGS.defaultEntryFile
+  instance.slsEntryFile = slsEntryFile
+
+  const tempApigwConfig = inputs.apigw || inputs.apigatewayConf || {}
+  const apigwConfig = Object.assign(tempApigwConfig, {
+    region,
+    isDisabled: tempApigwConfig.isDisabled === true,
+    serviceId: tempApigwConfig.id,
+    serviceName: tempApigwConfig.name,
+    serviceDesc: tempApigwConfig.description,
+    protocols: tempApigwConfig.protocols || ['http'],
+    environment: tempApigwConfig.environment || 'release',
+    customDomains: tempApigwConfig.customDomains
+  })
+
   return {
     region,
-    faasConfig,
-    apigwConfig
+    ...yamlToSdkInputs({ instance, sourceInputs: inputs, faasConfig, apigwConfig })
   }
 }
 
@@ -417,7 +464,7 @@ module.exports = {
   uploadCodeToCos,
   capitalString,
   getDefaultProtocol,
-  prepareInputs,
-  prepareStaticCosInputs,
-  prepareStaticCdnInputs
+  initializeInputs,
+  initializeStaticCosInputs,
+  initializeStaticCdnInputs
 }

@@ -1,11 +1,11 @@
 name: framework
-version: dev
-author: Tencent Cloud, Inc.
-org: Tencent Cloud, Inc.
+version: 0.1.0
+author: Serverless Plus
+org: Serverless Plus
 description: Deploy a serverless web framework application on Tencent SCF and API Gateway.
 keywords: tencent, serverless, framework, web
-repo: https://github.com/serverless-components/tencent-framework
-readme: https://github.com/serverless-components/tencent-framework/tree/master/README.md
+repo: https://github.com/serverless-plus/tencent-framework
+readme: https://github.com/serverless-plus/tencent-framework/tree/master/README.md
 license: MIT
 main: ./src
 webDeployable: true

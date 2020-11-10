@@ -4,10 +4,10 @@ const { TypeError } = require('tencent-component-toolkit/src/utils/error')
 const {
   uploadCodeToCos,
   getDefaultProtocol,
-  prepareInputs,
   deepClone,
-  prepareStaticCosInputs,
-  prepareStaticCdnInputs
+  initializeInputs,
+  initializeStaticCosInputs,
+  initializeStaticCdnInputs
 } = require('./utils')
 const initConfigs = require('./config')
 
@@ -147,9 +147,9 @@ class ServerlessComponent extends Component {
         }
       }
       // different region deployment has different service id
-      apigwInputs.serviceId = inputs.id || (state.apigw && state.apigw.id)
       const apigwOutput = await apigw.deploy(deepClone(apigwInputs))
       const outputs = {
+        created: true,
         url: `${getDefaultProtocol(apigwInputs.protocols)}://${apigwOutput.subDomain}/${
           apigwOutput.environment
         }${apigwInputs.endpoints[0].path}`,
@@ -187,7 +187,12 @@ class ServerlessComponent extends Component {
     if (zipPath) {
       console.log(`Deploy static for ${framework} application`)
       // 1. deploy to cos
-      const { staticCosInputs, bucket } = await prepareStaticCosInputs(this, inputs, appId, zipPath)
+      const { staticCosInputs, bucket } = await initializeStaticCosInputs(
+        this,
+        inputs,
+        appId,
+        zipPath
+      )
 
       const cos = new Cos(credentials, region)
       const cosOutput = {
@@ -211,7 +216,7 @@ class ServerlessComponent extends Component {
       // 2. deploy cdn
       if (inputs.cdn) {
         const cdn = new Cdn(credentials)
-        const cdnInputs = await prepareStaticCdnInputs(this, inputs, cosOutput.cosOrigin)
+        const cdnInputs = await initializeStaticCdnInputs(this, inputs, cosOutput.cosOrigin)
         console.log(`Starting deploy cdn ${cdnInputs.domain}`)
         const cdnDeployRes = await cdn.deploy(cdnInputs)
         const protocol = cdnInputs.https ? 'https' : 'http'
@@ -239,7 +244,7 @@ class ServerlessComponent extends Component {
 
     console.log(`Deploying ${this.framework} Application`)
 
-    const { region, faasConfig, apigwConfig } = await prepareInputs(this, inputs)
+    const { region, faasConfig, apigwConfig } = await initializeInputs(this, inputs)
 
     const outputs = {
       region
@@ -261,8 +266,12 @@ class ServerlessComponent extends Component {
     outputs['apigw'] = apigwOutputs
 
     // start deploy static cdn
-    if (inputs.static) {
-      outputs.static = await this.deployStatic(__TmpCredentials, inputs.static, region)
+    if (inputs.static || inputs.staticConf) {
+      const staticConfig = inputs.static || inputs.staticConf
+      staticConfig.cos = staticConfig.cos || staticConfig.cosConf
+      staticConfig.cdn = staticConfig.cdn || staticConfig.cdnConf
+      outputs.static = await this.deployStatic(__TmpCredentials, staticConfig, region)
+      this.state.static = outputs.static
     }
 
     // this config for online debug
@@ -275,7 +284,8 @@ class ServerlessComponent extends Component {
 
   async removeStatic(credentials) {
     // remove static
-    const { region, static: staticState } = this.state
+    const { region } = this.state
+    const staticState = this.state.static || this.state.staticConf
     if (staticState) {
       console.log(`Removing static config`)
       // 1. remove cos
@@ -305,20 +315,26 @@ class ServerlessComponent extends Component {
     const { state } = this
     const { region } = state
 
-    const { faas: faasState, apigw: apigwState } = state
+    const { apigw: apigwState } = state
+    const faasState = state.faas || state.scf
     const scf = new Scf(__TmpCredentials, region)
     const apigw = new Apigw(__TmpCredentials, region)
     await scf.remove({
-      functionName: faasState.name,
+      functionName: faasState.name || faasState.functionName,
       namespace: faasState.namespace
     })
     // if disable apigw, no need to remove
-    if (apigwState.isDisabled !== true && apigwState.id) {
+    if (apigwState.isDisabled !== true) {
+      const serviceId = apigwState.id || apigwState.serviceId
+      const apis = (apigwState.apis || apigwState.apiList || []).map((item) => {
+        item.created = true
+        return item
+      })
       await apigw.remove({
         created: true,
-        serviceId: apigwState.id,
+        serviceId: serviceId,
         environment: apigwState.environment,
-        apiList: apigwState.apis || [],
+        apiList: apis,
         customDomains: apigwState.customDomains
       })
     }
