@@ -5,40 +5,41 @@
 ```yml
 # serverless.yml
 
-component: framework # (必选) 组件名称，在该实例中为express
-name: expressDemo # 必选) 组件实例名称.
 org: orgDemo # (可选) 用于记录组织信息，默认值为您的腾讯云账户 appid，必须为字符串
 app: appDemo # (可选) 用于记录组织信息. 默认与name相同，必须为字符串
 stage: dev # (可选) 用于区分环境信息，默认值是 dev
+
+component: framework # (必选) 组件名称，在该实例中为express
+name: frameworkDemo # 必选) 组件实例名称.
 
 inputs:
   framework: express
   region: ap-guangzhou # 云函数所在区域
   entryFile: sls.js # 自定义 server 的入口文件名，默认为 sls.js，如果不想修改文件名为 sls.js 可以自定义
-   # 第一种为string时，会打包src对应目录下的代码上传到默认cos上。
-  src: ./src
-  # 第二种，部署src下的文件代码，并打包成zip上传到bucket上
+  # 第一种为string时，会打包src对应目录下的代码上传到默认cos上。
+  # src: ./src
+  # 第二种，部署src下的文件代码，并打包成zip上传到bucket上，推荐！！！
   src:
-    src: ./src  # 本地需要打包的文件目录
-    exclude:   # 被排除的文件或目录
+    src: ./src # 本地需要打包的文件目录
+    exclude: # 被排除的文件或目录
       - .env
-      - 'node_modules/**'
+      # - 'node_modules/**'
   # 第三种，在指定存储桶bucket中已经存在了obejct代码，直接部署
-  src:
-    bucket: bucket01 # bucket name，当前会默认在bucket name后增加 appid 后缀, 本例中为 bucket01-appid
-    obejct: cos.zip  # bucket key 指定存储桶内的文件
+  # src:
+  #   bucket: bucket01 # bucket name，当前会默认在bucket name后增加 appid 后缀, 本例中为 bucket01-appid
+  #   obejct: cos.zip  # bucket key 指定存储桶内的文件
   faas: # 函数配置相关
     name: expressDemo # 云函数名称
     runtime: Nodejs10.15 # 运行环境
     timeout: 10 # 超时时间，单位秒
     eip: false # 是否固定出口IP
     memorySize: 128 # 内存大小，单位MB
-    environment: #  环境变量
-      variables: #  环境变量数组
-        TEST: vale
+    environments: #  环境变量
+      - envKey: TEST
+        envVal: 123
     vpc: # 私有网络配置
-      vpcId: '' # 私有网络的Id
-      subnetId: '' # 子网ID
+      vpcId: vpc-xxxx # 私有网络的Id
+      subnetId: subnet-xxxx # 子网ID
     layers:
       - name: layerName #  layer名称
         version: 1 #  版本
@@ -100,15 +101,15 @@ inputs:
 
 主要的参数
 
-| 参数名称                         | 必选 |     默认值     | 描述                                                     |
-| -------------------------------- | :--: | :------------: | :------------------------------------------------------- |
-| framework                        |  是  |                | 项目使用的 Web 框架                                      |
-| src                              |  是  |                | 代码目录, 如果是对象, 配置参数参考 [执行目录](#执行目录) |
-| region                           |  否  | `ap-guangzhou` | 项目部署所在区域                                         |
-| entryFile                        |  否  |    `sls.js`    | 自定义 server 的入口文件名                               |
-| [faas](#函数配置)                |  否  |                | 函数配置                                                 |
-| [apigw](#API-网关配置)           |  否  |                | API 网关配置                                             |
-| [staticConf](#静态资源-CDN-配置) |  否  |                | 静态资源 CDN 配置                                        |
+| 参数名称                     | 必选 |     默认值     | 描述                                                     |
+| ---------------------------- | :--: | :------------: | :------------------------------------------------------- |
+| framework                    |  是  |                | 项目使用的 Web 框架                                      |
+| src                          |  是  |                | 代码目录, 如果是对象, 配置参数参考 [执行目录](#执行目录) |
+| region                       |  否  | `ap-guangzhou` | 项目部署所在区域                                         |
+| entryFile                    |  否  |    `sls.js`    | 自定义 server 的入口文件名                               |
+| [faas](#函数配置)            |  否  |                | 函数配置                                                 |
+| [apigw](#API-网关配置)       |  否  |                | API 网关配置                                             |
+| [static](#静态资源-CDN-配置) |  否  |                | 静态资源 CDN 配置                                        |
 
 > 注意：目前 `framework` 支持 Web 框架有 `express`、`koa`、`egg`、`next`、`nuxt`、`nest`、`laravel`、`thinkphp`、`flask`。
 
@@ -141,22 +142,25 @@ inputs:
 
 参考: https://cloud.tencent.com/document/product/583/18586
 
-| 参数名称    | 必选 |   类型   |    默认值     | 描述                                                                |
-| ----------- | :--: | :------: | :-----------: | :------------------------------------------------------------------ |
-| runtime     |  否  |  string  | `Nodejs10.15` | 执行环境, 目前支持: Nodejs6.10, Nodejs8.9, Nodejs10.15, Nodejs12.16 |
-| name        |  否  |  string  |               | 云函数名称                                                          |
-| timeout     |  否  |  number  |      `3`      | 函数最长执行时间，单位为秒，可选值范围 1-900 秒，默认为 3 秒        |
-| memorySize  |  否  |  number  |     `128`     | 函数运行时内存大小，可选范围 64、128MB-3072MB，并且以 128MB 为阶梯  |
-| environment |  否  |  obejct  |               | 函数的环境变量, 参考 [环境变量](#环境变量)                          |
-| vpc         |  否  |  obejct  |               | 函数的 VPC 配置, 参考 [VPC 配置](#VPC-配置)                         |
-| eip         |  否  | boolean  |    `false`    | 是否固定出口 IP                                                     |
-| layers      |  否  | obejct[] |               | 云函数绑定的 layer, 配置参数参考 [层配置](#层配置)                  |
+| 参数名称     | 必选 |   类型   |    默认值     | 描述                                                                |
+| ------------ | :--: | :------: | :-----------: | :------------------------------------------------------------------ |
+| runtime      |  否  |  string  | `Nodejs10.15` | 执行环境, 目前支持: Nodejs6.10, Nodejs8.9, Nodejs10.15, Nodejs12.16 |
+| name         |  否  |  string  |               | 云函数名称                                                          |
+| timeout      |  否  |  number  |      `3`      | 函数最长执行时间，单位为秒，可选值范围 1-900 秒，默认为 3 秒        |
+| memorySize   |  否  |  number  |     `128`     | 函数运行时内存大小，可选范围 64、128MB-3072MB，并且以 128MB 为阶梯  |
+| environments |  否  | object[] |               | 函数的环境变量, 参考 [环境变量](#环境变量)                          |
+| vpc          |  否  |  obejct  |               | 函数的 VPC 配置, 参考 [VPC 配置](#VPC-配置)                         |
+| eip          |  否  | boolean  |    `false`    | 是否固定出口 IP                                                     |
+| layers       |  否  | obejct[] |               | 云函数绑定的 layer, 配置参数参考 [层配置](#层配置)                  |
+
+> 此处只是列举，`faas` 参数支持 [scf](https://github.com/serverless-components/tencent-scf/tree/master/docs/configure.md) 组件的所有基础配置（ `events` 除外）
 
 ##### 环境变量
 
-| 参数名称  | 类型 | 描述                                      |
-| --------- | ---- | :---------------------------------------- |
-| variables |      | 环境变量参数, 包含多对 key-value 的键值对 |
+| 参数名称 | 类型   | 描述           |
+| -------- | ------ | :------------- |
+| envKey   | string | 环境变量 key   |
+| envVal   | string | 环境变量 value |
 
 ##### VPC 配置
 

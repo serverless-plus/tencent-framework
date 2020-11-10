@@ -1,8 +1,6 @@
 # Serverless Framework Component
 
-<!-- [![Build Status](https://github.com/serverless-plus/tencent-framework/workflows/Test/badge.svg?branch=master)](https://github.com/serverless-plus/tencent-framework/actions?query=workflow:Test+branch:master) -->
-
-[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![Build Status](https://github.com/serverless-plus/tencent-framework/workflows/Release/badge.svg?branch=master)](https://github.com/serverless-plus/tencent-framework/actions?query=workflow:Release+branch:master)
 
 > 此组件非腾讯云官方组件，很多特性是实验性的。如果有相关疑问，请提交 issue 或者 pr。
 
@@ -50,14 +48,12 @@ $ cd example
 
 ## 配置
 
-**现在还是开发阶段，版本为 `framework@dev`**。
-
 以下是 Express 框架的 `serverless.yml`配置示例：
 
 ```yml
 app: serverless
 stage: dev
-component: framework@dev
+component: framework
 name: express-demo
 
 inputs:
