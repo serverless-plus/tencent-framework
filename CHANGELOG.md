@@ -1,3 +1,10 @@
+## [0.1.1](https://github.com/serverless-plus/tencent-framework/compare/v0.1.0...v0.1.1) (2020-11-11)
+
+
+### Bug Fixes
+
+* support metrics ([5d139a1](https://github.com/serverless-plus/tencent-framework/commit/5d139a1bf6eecace33f9864c9986be32fafaf106))
+
 # [0.1.0](https://github.com/serverless-plus/tencent-framework/compare/v0.0.1...v0.1.0) (2020-11-10)
 
 
