@@ -72,16 +72,17 @@ class ServerlessComponent extends Component {
       }
 
       // default version is $LATEST
+      const faasState = state.faas || state.scf || {}
       outputs.lastVersion = scfOutput.LastVersion
         ? scfOutput.LastVersion
-        : (state.faas && state.faas.lastVersion) || '$LATEST'
+        : faasState.lastVersion || '$LATEST'
 
       // default traffic is 1.0, it can also be 0, so we should compare to undefined
       outputs.traffic =
         scfOutput.Traffic !== undefined
           ? scfOutput.Traffic
-          : (state.faas && state.faas.traffic) !== undefined
-          ? state.faas.traffic
+          : faasState.traffic !== undefined
+          ? faasState.traffic
           : 1
 
       if (outputs.traffic !== 1 && scfOutput.ConfigTrafficVersion) {
@@ -240,9 +241,9 @@ class ServerlessComponent extends Component {
 
   async deploy(inputs) {
     this.initialize(inputs.framework)
-    const { __TmpCredentials, CONFIGS } = this
+    const { __TmpCredentials, CONFIGS, framework } = this
 
-    console.log(`Deploying ${this.framework} Application`)
+    console.log(`Deploying ${framework} Application`)
 
     const { region, faasConfig, apigwConfig } = await initializeInputs(this, inputs)
 
@@ -266,8 +267,8 @@ class ServerlessComponent extends Component {
     outputs['apigw'] = apigwOutputs
 
     // start deploy static cdn
-    if (inputs.static || inputs.staticConf) {
-      const staticConfig = inputs.static || inputs.staticConf
+    const staticConfig = inputs.static || inputs.staticConf
+    if (staticConfig) {
       staticConfig.cos = staticConfig.cos || staticConfig.cosConf
       staticConfig.cdn = staticConfig.cdn || staticConfig.cdnConf
       outputs.static = await this.deployStatic(__TmpCredentials, staticConfig, region)
@@ -308,14 +309,13 @@ class ServerlessComponent extends Component {
 
   async remove(inputs) {
     this.initialize(inputs.framework)
-    const { __TmpCredentials, framework } = this
+    const { __TmpCredentials, framework, state } = this
 
     console.log(`Removing ${framework} App`)
 
-    const { state } = this
     const { region } = state
 
-    const { apigw: apigwState } = state
+    const apigwState = state.apigw
     const faasState = state.faas || state.scf
     const scf = new Scf(__TmpCredentials, region)
     const apigw = new Apigw(__TmpCredentials, region)
@@ -326,7 +326,8 @@ class ServerlessComponent extends Component {
     // if disable apigw, no need to remove
     if (apigwState.isDisabled !== true) {
       const serviceId = apigwState.id || apigwState.serviceId
-      const apis = (apigwState.apis || apigwState.apiList || []).map((item) => {
+      let apis = apigwState.apis || apigwState.apiList || []
+      apis = apis.map((item) => {
         item.created = true
         return item
       })

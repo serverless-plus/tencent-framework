@@ -1,5 +1,5 @@
 name: framework
-version: 0.1.1
+version: 0.1.2
 author: Serverless Plus
 org: Serverless Plus
 description: Deploy a serverless web framework application on Tencent SCF and API Gateway.
