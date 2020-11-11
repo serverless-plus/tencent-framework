@@ -1,7 +1,7 @@
 app: appDemo
 stage: dev
 
-component: framework
+component: framework@dev
 name: koaDemo
 
 inputs:
@@ -11,7 +11,7 @@ inputs:
     exclude:
       - .env
   faas:
-    name: framework-demo
+    name: ${name}
   apigw:
     protocols:
       - http

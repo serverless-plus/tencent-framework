@@ -18,6 +18,7 @@ inputs:
       - 'requirements/**'
   region: ap-guangzhou
   faas:
+    name: ${name}
     runtime: Python3.6
   apigw:
     protocols:

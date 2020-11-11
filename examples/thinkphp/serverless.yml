@@ -11,7 +11,7 @@ inputs:
     exclude:
       - .env
   faas:
-    name: framework-demo
+    name: ${name}
   apigw:
     protocols:
       - http

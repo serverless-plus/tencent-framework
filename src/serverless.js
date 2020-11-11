@@ -347,39 +347,41 @@ class ServerlessComponent extends Component {
     return {}
   }
 
-  async metrics(inputs = {}) {
-    this.initialize(inputs.framework)
-    const { __TmpCredentials, framework } = this
+  async metrics(inputs) {
+    this.initialize()
+    const { __TmpCredentials, state } = this
 
-    console.log(`Get ${framework} Metrics Datas...`)
+    console.log(`Get framework metrics data`)
     if (!inputs.rangeStart || !inputs.rangeEnd) {
       throw new TypeError(
-        `PARAMETER_${framework.toUpperCase()}_METRICS`,
+        `PARAMETER_FRAMEWORK_METRICS`,
         'rangeStart and rangeEnd are require inputs'
       )
     }
-    const { region } = this.state
+    const { region } = state
     if (!region) {
-      throw new TypeError(
-        `PARAMETER_${framework.toUpperCase()}_METRICS`,
-        'No region property in state'
-      )
+      throw new TypeError(`PARAMETER_FRAMEWORK_METRICS`, 'No region property in state')
     }
-    const { name, namespace, latestVersion } = this.state.faas || {}
-    if (name) {
+
+    const faasState = state.faas || state.scf || {}
+    const { namespace, latestVersion } = faasState
+    const faasName = faasState.name || faasState.functionName
+    if (faasName) {
       const options = {
-        funcName: name,
+        funcName: faasName,
         namespace: namespace,
         version: latestVersion,
         region,
         timezone: inputs.tz
       }
 
-      const { apigw } = this.state
-      if (apigw.id) {
-        options.apigwServiceId = apigw.id
-        options.apigwEnvironment = apigw.environment || 'release'
+      const apigwState = state.apigw
+      const serviceId = apigwState.id || apigwState.serviceId
+      if (serviceId) {
+        options.apigwServiceId = serviceId
+        options.apigwEnvironment = apigwState.environment || 'release'
       }
+
       const mertics = new Metrics(__TmpCredentials, options)
       const metricResults = await mertics.getDatas(
         inputs.rangeStart,
@@ -388,7 +390,7 @@ class ServerlessComponent extends Component {
       )
       return metricResults
     }
-    throw new TypeError(`PARAMETER_${framework.toUpperCase()}_METRICS`, 'Function name not define')
+    throw new TypeError(`PARAMETER_FRAMEWORK_METRICS`, 'Function name not define')
   }
 }
 

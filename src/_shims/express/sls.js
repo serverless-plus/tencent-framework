@@ -4,7 +4,7 @@ const app = express()
 // Routes
 app.get(`/`, (req, res) => {
   res.send({
-    msg: `Hello Express, Request received: ${req.method} - ${req.path}`
+    msg: `Serverless Express Application, Request received: ${req.method} - ${req.path}`
   })
 })
 

@@ -16,18 +16,11 @@ inputs:
   framework: express
   region: ap-guangzhou # 云函数所在区域
   entryFile: sls.js # 自定义 server 的入口文件名，默认为 sls.js，如果不想修改文件名为 sls.js 可以自定义
-  # 第一种为string时，会打包src对应目录下的代码上传到默认cos上。
-  # src: ./src
-  # 第二种，部署src下的文件代码，并打包成zip上传到bucket上，推荐！！！
   src:
-    src: ./src # 本地需要打包的文件目录
+    src: ./ # 本地需要打包的文件目录
     exclude: # 被排除的文件或目录
       - .env
       # - 'node_modules/**'
-  # 第三种，在指定存储桶bucket中已经存在了obejct代码，直接部署
-  # src:
-  #   bucket: bucket01 # bucket name，当前会默认在bucket name后增加 appid 后缀, 本例中为 bucket01-appid
-  #   obejct: cos.zip  # bucket key 指定存储桶内的文件
   faas: # 函数配置相关
     name: expressDemo # 云函数名称
     runtime: Nodejs10.15 # 运行环境
@@ -45,7 +38,7 @@ inputs:
         version: 1 #  版本
   apigw: #  api网关配置
     isDisabled: false # 是否禁用自动创建 API 网关功能
-    id: service-np1uloxw # api网关服务ID
+    id: service-xxx # api网关服务ID
     name: mytest # api网关服务名称
     description: mytest # api网关描述
     cors: true #  允许跨域
@@ -54,11 +47,6 @@ inputs:
       - https
     environment: test
     timeout: 15
-    # 指定网关创建的api的名称和路径
-    api:
-      name: api-name # api 名称
-      path: / # api 路径
-      method: ANY # api 方法
     customDomains: # 自定义域名绑定
       - domain: abc.com # 待绑定的自定义的域名
         certificateId: abcdefg # 待绑定自定义域名的证书唯一 ID
