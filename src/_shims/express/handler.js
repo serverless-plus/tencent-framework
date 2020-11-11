@@ -1,3 +1,8 @@
+try {
+  require('tencent-component-monitor')
+} catch (e) {
+  console.log(e)
+}
 const fs = require('fs')
 const path = require('path')
 const { createServer, proxy } = require('tencent-serverless-http')
@@ -5,7 +10,7 @@ const { createServer, proxy } = require('tencent-serverless-http')
 let server
 let app
 
-exports.handler = async (event, context) => {
+module.exports.handler = async (event, context) => {
   const userSls = path.join(__dirname, '..', process.env.SLS_ENTRY_FILE)
   if (fs.existsSync(userSls)) {
     // eslint-disable-next-line

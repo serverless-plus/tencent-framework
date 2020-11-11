@@ -13,6 +13,7 @@ inputs:
       - .env
   region: ap-guangzhou
   faas:
+    name: ${name}
     runtime: Nodejs10.15
   apigw:
     protocols:

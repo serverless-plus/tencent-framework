@@ -9,6 +9,7 @@ inputs:
   src: ./
   region: ap-guangzhou
   faas:
+    name: ${name}
     runtime: Php7
     environment:
       variables:
