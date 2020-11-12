@@ -1,3 +1,11 @@
+## [0.1.2](https://github.com/serverless-plus/tencent-framework/compare/v0.1.1...v0.1.2) (2020-11-12)
+
+
+### Bug Fixes
+
+* get publish & traffic state compatibility ([8ff5eec](https://github.com/serverless-plus/tencent-framework/commit/8ff5eecb836ed7c5a67f513ff7424fc3fe0b4e41))
+* remove action ([8bfa6e9](https://github.com/serverless-plus/tencent-framework/commit/8bfa6e9bfc7650cbe07007cb982fdb3946b89f23))
+
 ## [0.1.1](https://github.com/serverless-plus/tencent-framework/compare/v0.1.0...v0.1.1) (2020-11-11)
 
 
