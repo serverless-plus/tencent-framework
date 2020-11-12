@@ -4,26 +4,30 @@ const frameworks = {
     templateUrl:
       'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/express-demo.zip',
     runtime: 'Nodejs10.15',
-    defaultEntryFile: 'sls.js'
+    defaultEntryFile: 'sls.js',
+    defaultStatics: [{ src: 'public', targetDir: '/' }]
   },
   koa: {
     injectSlsSdk: true,
     templateUrl: 'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/koa-demo.zip',
     runtime: 'Nodejs10.15',
-    defaultEntryFile: 'sls.js'
+    defaultEntryFile: 'sls.js',
+    defaultStatics: [{ src: 'public', targetDir: '/' }]
   },
   egg: {
     injectSlsSdk: true,
     templateUrl: 'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/egg-demo.zip',
     runtime: 'Nodejs10.15',
-    defaultEntryFile: 'sls.js'
+    defaultEntryFile: 'sls.js',
+    defaultStatics: [{ src: 'public', targetDir: '/' }]
   },
   nest: {
     injectSlsSdk: true,
     templateUrl:
       'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/nestjs-demo.zip',
     runtime: 'Nodejs10.15',
-    defaultEntryFile: 'sls.js'
+    defaultEntryFile: 'sls.js',
+    defaultStatics: [{ src: 'public', targetDir: '/' }]
   },
   next: {
     injectSlsSdk: true,
