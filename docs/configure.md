@@ -67,8 +67,6 @@ inputs:
       acl:
         permissions: public-read
       sources:
-        - src: .next/static
-          targetDir: /_next/static
         - src: public
           targetDir: /
     cdn:
@@ -227,6 +225,12 @@ Refer to: https://cloud.tencent.com/document/product/628/14906
 ]
 ```
 
+**Express.js、Koa.js、Egg.js**
+
+```json
+[{ "src": "public", "targetDir": "/" }]
+```
+
 ###### acl
 
 | 参数名称    | 必选 |  类型  |    默认值     | 描述         |
@@ -234,10 +238,6 @@ Refer to: https://cloud.tencent.com/document/product/628/14906
 | permissions |  是  | string | `public-read` | 公共权限配置 |
 
 ##### CDN 配置
-
-area: mainland domain: cnode.yuga.chat autoRefresh: true refreshType: delete
-forceRedirect: switch: on redirectType: https redirectStatusCode: 301 https:
-http2: on certId: 'eGkM75xv'
 
 | 参数名称      | 必选 |  类型   |   默认值   | 描述                                                       |
 | ------------- | :--: | :-----: | :--------: | :--------------------------------------------------------- |
