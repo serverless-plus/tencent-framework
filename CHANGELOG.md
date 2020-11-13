@@ -1,3 +1,10 @@
+## [0.1.3](https://github.com/serverless-plus/tencent-framework/compare/v0.1.2...v0.1.3) (2020-11-13)
+
+
+### Bug Fixes
+
+* cdn default config ([32eda65](https://github.com/serverless-plus/tencent-framework/commit/32eda658f4905f6f32007c4265a123154163689d))
+
 ## [0.1.2](https://github.com/serverless-plus/tencent-framework/compare/v0.1.1...v0.1.2) (2020-11-12)
 
 
