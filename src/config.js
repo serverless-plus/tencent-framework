@@ -38,19 +38,7 @@ const frameworks = {
     defaultStatics: [
       { src: '.next/static', targetDir: '/_next/static' },
       { src: 'public', targetDir: '/' }
-    ],
-    defaultCdnConf: {
-      autoRefresh: true,
-      forceRedirect: {
-        switch: 'on',
-        redirectType: 'https',
-        redirectStatusCode: 301
-      },
-      https: {
-        switch: 'on',
-        http2: 'on'
-      }
-    }
+    ]
   },
   nuxt: {
     injectSlsSdk: true,
@@ -61,19 +49,7 @@ const frameworks = {
     defaultStatics: [
       { src: '.nuxt/dist/client', targetDir: '/' },
       { src: 'static', targetDir: '/' }
-    ],
-    defaultCdnConf: {
-      autoRefresh: true,
-      forceRedirect: {
-        switch: 'on',
-        redirectType: 'https',
-        redirectStatusCode: 301
-      },
-      https: {
-        switch: 'on',
-        http2: 'on'
-      }
-    }
+    ]
   },
   laravel: {
     injectSlsSdk: false,
@@ -114,6 +90,18 @@ const CONFIGS = {
         abortIncompleteMultipartUpload: { daysAfterInitiation: '10' }
       }
     ]
+  },
+  cdn: {
+    autoRefresh: true,
+    forceRedirect: {
+      switch: 'on',
+      redirectType: 'https',
+      redirectStatusCode: 301
+    },
+    https: {
+      switch: 'on',
+      http2: 'on'
+    }
   }
 }
 
