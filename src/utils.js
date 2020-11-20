@@ -88,6 +88,17 @@ const validateTraffic = (framework, num) => {
   return true
 }
 
+const generatePublicDir = (zipPath) => {
+  const zip = new AdmZip(zipPath)
+  const entries = zip.getEntries()
+  const [entry] = entries.filter((e) => e.entryName === 'app/public/' && e.name === '')
+  if (!entry) {
+    const extraPublicPath = path.join(__dirname, 'fixtures/public')
+    zip.addLocalFolder(extraPublicPath, 'app/public')
+    zip.writeZip()
+  }
+}
+
 const getCodeZipPath = async (instance, inputs) => {
   const { CONFIGS, framework } = instance
   console.log(`Packaging ${framework} application`)
@@ -110,6 +121,9 @@ const getCodeZipPath = async (instance, inputs) => {
     zipPath = `${downloadPath}/${filename}.zip`
   } else {
     zipPath = inputs.code.src
+  }
+  if (framework === 'egg') {
+    generatePublicDir(zipPath)
   }
 
   return zipPath
@@ -304,7 +318,7 @@ const initializeStaticCdnInputs = async (instance, inputs, origin) => {
 // compatible code for old configs
 // transfer yaml config to sdk inputs
 const yamlToSdkInputs = ({ instance, sourceInputs, faasConfig, apigwConfig }) => {
-  const { framework, state } = instance
+  const { framework, state, CONFIGS } = instance
   // chenck state function name
   const stateFaasName = state.faas && state.faas.name
   const { functionConf = {}, apigatewayConf = {} } = sourceInputs
@@ -316,6 +330,12 @@ const yamlToSdkInputs = ({ instance, sourceInputs, faasConfig, apigwConfig }) =>
     getDefaultFunctionName(framework)
 
   if (faasConfig.environments) {
+    if (framework === 'egg') {
+      faasConfig.environments.push({
+        envKey: 'EGG_APP_CONFIG',
+        envVal: CONFIGS.EGG_APP_CONFIG
+      })
+    }
     // this is new config array to object
     const environment = deepClone(faasConfig.environments)
     if (getType(environment) === 'Array') {
@@ -339,7 +359,8 @@ const yamlToSdkInputs = ({ instance, sourceInputs, faasConfig, apigwConfig }) =>
     faasConfig.environment = {
       variables: {
         SERVERLESS: '1',
-        SLS_ENTRY_FILE: instance.slsEntryFile
+        SLS_ENTRY_FILE: instance.slsEntryFile,
+        EGG_APP_CONFIG: CONFIGS.EGG_APP_CONFIG
       }
     }
   }
