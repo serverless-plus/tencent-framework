@@ -1,3 +1,10 @@
+## [0.1.4](https://github.com/serverless-plus/tencent-framework/compare/v0.1.3...v0.1.4) (2020-11-20)
+
+
+### Bug Fixes
+
+* support no migration for egg ([212d8ab](https://github.com/serverless-plus/tencent-framework/commit/212d8abf38de1dfefee379bbd40cfa46275236a9))
+
 ## [0.1.3](https://github.com/serverless-plus/tencent-framework/compare/v0.1.2...v0.1.3) (2020-11-13)
 
 
