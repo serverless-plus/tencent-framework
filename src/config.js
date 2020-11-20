@@ -19,7 +19,8 @@ const frameworks = {
     templateUrl: 'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/egg-demo.zip',
     runtime: 'Nodejs10.15',
     defaultEntryFile: 'sls.js',
-    defaultStatics: [{ src: 'public', targetDir: '/' }]
+    defaultStatics: [{ src: 'public', targetDir: '/' }],
+    EGG_APP_CONFIG: '{"rundir":"/tmp","logger":{"dir":"/tmp"}}'
   },
   nest: {
     injectSlsSdk: true,
