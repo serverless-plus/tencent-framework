@@ -17,7 +17,7 @@ Serverless Web 框架组件，可以方便将传统 Web 框架部署到腾讯云
 - [x] Laravel
 - [x] ThinkPHP
 - [x] Flask
-- [ ] Django
+- [x] Django
 
 > 支持无改造部署 Egg.js 项目，需要项目依赖 [egg-core](https://github.com/eggjs/egg-core) >= 4.19.0
 
@@ -76,11 +76,11 @@ inputs:
 
 [全量配置](./docs/configure.md)
 
-> 注意：`inputs` 中 `framework` 参数是必须的，组件将根据该参数来对 Web 框架项目进行自动化部署，目前 `framework` 支持 Web 框架有 `express`、`koa`、`egg`、`next`、`nuxt`、`nest`、`laravel`、`thinkphp`、`flask`。
+> 注意：`inputs` 中 `framework` 参数是必须的，组件将根据该参数来对 Web 框架项目进行自动化部署，目前 `framework` 支持 Web 框架有 `express`、`koa`、`egg`、`next`、`nuxt`、`nest`、`laravel`、`thinkphp`、`flask`、`django`。
 
 ## 可视化配置
 
-新规范支持可视化配置，启动前先安装 [@slsplus/cli] 命令行工具：
+新规范支持可视化配置，启动前先安装 [@slsplus/cli](https://github.com/serverless-plus/cli) 命令行工具：
 
 ```bash
 $ npm i @slsplus/cli -g

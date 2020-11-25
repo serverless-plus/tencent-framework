@@ -4,6 +4,7 @@ const { Cos } = require('tencent-component-toolkit')
 const download = require('download')
 const { TypeError } = require('tencent-component-toolkit/src/utils/error')
 const AdmZip = require('adm-zip')
+const fse = require('fs-extra')
 
 /*
  * Generates a random id
@@ -129,8 +130,27 @@ const getCodeZipPath = async (instance, inputs) => {
   return zipPath
 }
 
+/**
+ * modify entry file for django project
+ * @param {object} inputs function inputs
+ */
+const modifyDjangoEntryFile = (projectName, shimPath) => {
+  const compShimsPath = `/tmp/_shims`
+  const fixturePath = path.join(__dirname, 'fixtures/python')
+  fse.copySync(shimPath, compShimsPath)
+  fse.copySync(fixturePath, compShimsPath)
+
+  // replace {{django_project}} in _shims/index.py to djangoProjectName
+  const indexPath = path.join(compShimsPath, 'sl_handler.py')
+  const indexPyFile = fs.readFileSync(indexPath, 'utf8')
+  const replacedFile = indexPyFile.replace(eval('/{{django_project}}/g'), projectName)
+  fs.writeFileSync(indexPath, replacedFile)
+
+  return compShimsPath
+}
+
 // get files/dirs need to inject to project code
-const getInjection = (instance, framework) => {
+const getInjection = (instance, framework, inputs) => {
   const { CONFIGS } = instance
   let injectFiles = {}
   let injectDirs = {}
@@ -140,6 +160,16 @@ const getInjection = (instance, framework) => {
     injectDirs = {
       _shims: shimPath
     }
+  } else if (framework === 'django') {
+    const djangoShimPath = modifyDjangoEntryFile(inputs.projectName, shimPath)
+    injectDirs = {
+      '': djangoShimPath
+    }
+  } else if (framework === 'flask') {
+    injectDirs = {
+      '': path.join(__dirname, 'fixtures/python')
+    }
+    injectFiles = getDirFiles(shimPath)
   } else {
     injectFiles = getDirFiles(shimPath)
   }
@@ -188,7 +218,7 @@ const uploadCodeToCos = async (instance, appId, credentials, inputs, region) => 
     // if shims and sls sdk entries had been injected to zipPath, no need to injected again
     console.log(`Uploading code to bucket ${bucketName}`)
 
-    const { injectFiles, injectDirs } = getInjection(instance, framework)
+    const { injectFiles, injectDirs } = getInjection(instance, framework, inputs)
 
     await instance.uploadSourceZipToCOS(zipPath, uploadUrl, injectFiles, injectDirs)
     console.log(`Upload ${objectName} to bucket ${bucketName} success`)
@@ -382,7 +412,7 @@ const yamlToSdkInputs = ({ instance, sourceInputs, faasConfig, apigwConfig }) =>
   faasConfig.layers = faasConfig.layers || sourceInputs.layers || []
 
   // transfer apigw config
-  const stateApigwId = state.apigw && (state.apigw.id || state.apigw.serviceId)
+  const stateApigwId = state.apigw && state.apigw.id
   apigwConfig.serviceId =
     apigwConfig.serviceId || apigatewayConf.serviceId || sourceInputs.serviceId || stateApigwId
   apigwConfig.serviceName =
