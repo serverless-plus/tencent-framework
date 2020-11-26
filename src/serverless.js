@@ -150,7 +150,7 @@ class ServerlessComponent extends Component {
       const apigwInputs = {
         ...inputs,
         oldState: {
-          apis: oldState.apis || [],
+          apiList: oldState.apis || [],
           customDomains: oldState.customDomains || []
         }
       }

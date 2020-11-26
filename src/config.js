@@ -69,11 +69,18 @@ const frameworks = {
     templateUrl:
       'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/flask-demo.zip',
     runtime: 'Python3.6'
+  },
+  django: {
+    injectSlsSdk: false,
+    templateUrl:
+      'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/django-demo.zip',
+    runtime: 'Python3.6'
   }
 }
 
 const CONFIGS = {
   // support metrics frameworks
+  pythonFrameworks: ['flask', 'django'],
   supportMetrics: ['express', 'next', 'nuxt'],
   region: 'ap-guangzhou',
   description: 'Created by Serverless Component',

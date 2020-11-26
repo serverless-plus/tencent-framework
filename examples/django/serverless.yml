@@ -1,0 +1,29 @@
+app: appDemo
+stage: dev
+
+component: framework
+name: djangoDemo
+
+inputs:
+  framework: django
+  src:
+    # TODO: 安装python项目依赖到项目当前目录
+    hook: 'pip3 install -r requirements.txt -t ./requirements'
+    dist: ./
+    include:
+      - source: ./requirements
+        prefix: ../ # prefix, can make ./requirements files/dir to ./
+    exclude:
+      - .env
+      - 'requirements/**'
+      - '__pycache__/**'
+  region: ap-guangzhou
+  faas:
+    projectName: djangodemo
+    name: ${name}
+    runtime: Python3.6
+  apigw:
+    protocols:
+      - http
+      - https
+    environment: release
