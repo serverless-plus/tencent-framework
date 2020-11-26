@@ -1,3 +1,10 @@
+## [0.1.5](https://github.com/serverless-plus/tencent-framework/compare/v0.1.4...v0.1.5) (2020-11-26)
+
+
+### Bug Fixes
+
+* support django ([#8](https://github.com/serverless-plus/tencent-framework/issues/8)) ([142f0ed](https://github.com/serverless-plus/tencent-framework/commit/142f0edeb0ae9554f92e1abffee17d7e685aa4b0))
+
 ## [0.1.4](https://github.com/serverless-plus/tencent-framework/compare/v0.1.3...v0.1.4) (2020-11-20)
 
 
