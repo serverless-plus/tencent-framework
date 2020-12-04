@@ -1,6 +1,6 @@
 # Serverless Framework Component
 
-[![Build Status](https://github.com/serverless-plus/tencent-framework/workflows/Release/badge.svg?branch=master)](https://github.com/serverless-plus/tencent-framework/actions?query=workflow:Release+branch:master)
+[![Build Status](https://github.com/serverless-plus/tencent-framework/workflows/Test/badge.svg)](https://github.com/serverless-plus/tencent-framework/actions?query=workflow:Test)
 
 > 此组件非腾讯云官方组件，很多特性是实验性的。如果有相关疑问，请提交 issue 或者 pr。
 

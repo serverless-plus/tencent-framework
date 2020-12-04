@@ -11,9 +11,9 @@ inputs:
   faas:
     name: ${name}
     runtime: Php7
-    environment:
-      variables:
-        APP_ENV: production
+    environments:
+      - key: APP_ENV
+        value: production
   apigw:
     protocols:
       - http
