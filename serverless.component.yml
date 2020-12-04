@@ -1,5 +1,5 @@
 name: framework
-version: 0.1.5
+version: 0.1.6
 author: Serverless Plus
 org: Serverless Plus
 description: Deploy a serverless web framework application on Tencent SCF and API Gateway.
@@ -45,7 +45,7 @@ actions:
             type: string
             default: ap-guangzhou
             description: Region for faas
-            allow: # The values that are allowed for this
+            allow:
               - ap-guangzhou
               - ap-shanghai
               - ap-hongkong
@@ -87,12 +87,26 @@ actions:
             type: string
             default: 'index.main_handler'
             description: The handler of faas
-          environment:
-            type: object
-            description: faas environment
-            keys:
-              variables:
-                type: object
+          tags:
+            type: array
+            description: faas tags
+            items:
+              - type: object
+                keys:
+                  key:
+                    type: string
+                  value:
+                    type: string
+          environments:
+            type: array
+            description: faas environments
+            items:
+              - type: object
+                keys:
+                  key:
+                    type: string
+                  value:
+                    type: string
           vpc:
             type: object
             keys:

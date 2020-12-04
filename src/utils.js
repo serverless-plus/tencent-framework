@@ -347,89 +347,51 @@ const initializeStaticCdnInputs = async (instance, inputs, origin) => {
 
 // compatible code for old configs
 // transfer yaml config to sdk inputs
-const yamlToSdkInputs = ({ instance, sourceInputs, faasConfig, apigwConfig }) => {
+const yamlToSdkInputs = ({ instance, faasConfig, apigwConfig }) => {
   const { framework, state, CONFIGS } = instance
   // chenck state function name
   const stateFaasName = state.faas && state.faas.name
-  const { functionConf = {}, apigatewayConf = {} } = sourceInputs
   // transfer faas config
-  faasConfig.name =
-    faasConfig.name ||
-    sourceInputs.functionName ||
-    stateFaasName ||
-    getDefaultFunctionName(framework)
+  faasConfig.name = faasConfig.name || stateFaasName || getDefaultFunctionName(framework)
 
-  if (faasConfig.environments) {
-    if (framework === 'egg') {
-      faasConfig.environments.push({
-        envKey: 'EGG_APP_CONFIG',
-        envVal: CONFIGS.EGG_APP_CONFIG
-      })
-    }
-    // this is new config array to object
-    const environment = deepClone(faasConfig.environments)
-    if (getType(environment) === 'Array') {
-      faasConfig.environment = {
-        variables: {
-          SERVERLESS: '1',
-          SLS_ENTRY_FILE: instance.slsEntryFile
-        }
-      }
-      environment.forEach((item) => {
-        faasConfig.environment.variables[item.envKey] = item.envVal
-      })
-    } else {
-      faasConfig.environment = {
-        variables: environment.variables || {}
-      }
-      faasConfig.environment.variables.SERVERLESS = '1'
-      faasConfig.environment.variables.SLS_ENTRY_FILE = instance.slsEntryFile
-    }
-  } else {
-    faasConfig.environment = {
-      variables: {
-        SERVERLESS: '1',
-        SLS_ENTRY_FILE: instance.slsEntryFile,
-        EGG_APP_CONFIG: CONFIGS.EGG_APP_CONFIG
-      }
-    }
+  const { defaultEnvs } = CONFIGS
+  faasConfig.environments = (faasConfig.environments || [])
+    .concat(defaultEnvs)
+    .concat([{ key: 'SLS_ENTRY_FILE', value: instance.slsEntryFile }])
+  const environments = deepClone(faasConfig.environments)
+
+  faasConfig.environment = {
+    variables: {}
   }
+  environments.forEach((item) => {
+    faasConfig.environment.variables[item.key] = item.value
+  })
 
-  if (faasConfig.vpc || functionConf.vpcConfig) {
-    faasConfig.vpcConfig = faasConfig.vpc || functionConf.vpcConfig
+  if (faasConfig.vpc) {
+    faasConfig.vpcConfig = faasConfig.vpc
   }
 
   if (faasConfig.tags) {
     const tags = deepClone(faasConfig.tags)
-    if (getType(tags) === 'Array') {
-      faasConfig.tags = {}
-      tags.forEach((item) => {
-        faasConfig.tags[item.tagKey] = item.tagVal
-      })
-    }
+    faasConfig.tags = {}
+    tags.forEach((item) => {
+      faasConfig.tags[item.key] = item.value
+    })
   }
-
-  faasConfig.layers = faasConfig.layers || sourceInputs.layers || []
 
   // transfer apigw config
   const stateApigwId = state.apigw && state.apigw.id
-  apigwConfig.serviceId =
-    apigwConfig.serviceId || apigatewayConf.serviceId || sourceInputs.serviceId || stateApigwId
-  apigwConfig.serviceName =
-    apigwConfig.serviceName ||
-    apigatewayConf.serviceName ||
-    sourceInputs.serviceName ||
-    getDefaultServiceName(instance)
-  apigwConfig.serviceDesc =
-    apigwConfig.serviceDesc || apigatewayConf.serviceDesc || getDefaultServiceDescription(instance)
+  apigwConfig.serviceId = apigwConfig.id || stateApigwId
+  apigwConfig.serviceName = apigwConfig.name || getDefaultServiceName(instance)
+  apigwConfig.serviceDesc = apigwConfig.description || getDefaultServiceDescription(instance)
 
   apigwConfig.endpoints = [
     {
       path: '/',
       apiName: 'index',
       method: 'ANY',
-      enableCORS: apigwConfig.cors || apigatewayConf.enableCORS,
-      serviceTimeout: apigwConfig.timeout || apigatewayConf.serviceTimeout,
+      enableCORS: apigwConfig.cors,
+      serviceTimeout: apigwConfig.timeout,
       function: {
         isIntegratedResponse: true,
         functionQualifier: apigwConfig.qualifier || '$DEFAULT',
@@ -441,10 +403,6 @@ const yamlToSdkInputs = ({ instance, sourceInputs, faasConfig, apigwConfig }) =>
 
   if (apigwConfig.customDomains && apigwConfig.customDomains.length > 0) {
     apigwConfig.customDomains = apigwConfig.customDomains.map((item) => {
-      if (item.certificateId) {
-        // old config, directly return
-        return item
-      }
       return {
         domain: item.domain,
         certificateId: item.certId,
@@ -462,7 +420,7 @@ const initializeInputs = async (instance, inputs = {}) => {
   const { CONFIGS, framework } = instance
   const region = inputs.region || CONFIGS.region
 
-  const tempFaasConfig = inputs.faas || inputs.functionConf || {}
+  const tempFaasConfig = inputs.faas || {}
   const faasConfig = Object.assign(tempFaasConfig, {
     region: region,
     code: {
@@ -470,20 +428,15 @@ const initializeInputs = async (instance, inputs = {}) => {
       bucket: inputs.srcOriginal && inputs.srcOriginal.bucket,
       object: inputs.srcOriginal && inputs.srcOriginal.object
     },
-    name: tempFaasConfig.name,
     role: tempFaasConfig.role || '',
     handler: tempFaasConfig.handler || CONFIGS.handler,
     runtime: tempFaasConfig.runtime || CONFIGS.runtime,
     namespace: tempFaasConfig.namespace || CONFIGS.namespace,
     description: tempFaasConfig.description || CONFIGS.description,
-    layers: tempFaasConfig.layers,
-    cfs: tempFaasConfig.cfs || [],
     timeout: tempFaasConfig.timeout || CONFIGS.timeout,
     memorySize: tempFaasConfig.memorySize || CONFIGS.memorySize,
-    environments: tempFaasConfig.environments || tempFaasConfig.environment,
-    tags: tempFaasConfig.tags || inputs.tags,
-    publish: inputs.publish,
-    traffic: inputs.traffic
+    layers: tempFaasConfig.layers || [],
+    cfs: tempFaasConfig.cfs || []
   })
 
   // validate traffic
@@ -495,21 +448,17 @@ const initializeInputs = async (instance, inputs = {}) => {
   const slsEntryFile = inputs.entryFile || CONFIGS.defaultEntryFile
   instance.slsEntryFile = slsEntryFile
 
-  const tempApigwConfig = inputs.apigw || inputs.apigatewayConf || {}
+  const tempApigwConfig = inputs.apigw || {}
   const apigwConfig = Object.assign(tempApigwConfig, {
     region,
     isDisabled: tempApigwConfig.isDisabled === true,
-    serviceId: tempApigwConfig.id,
-    serviceName: tempApigwConfig.name,
-    serviceDesc: tempApigwConfig.description,
     protocols: tempApigwConfig.protocols || ['http'],
-    environment: tempApigwConfig.environment || 'release',
-    customDomains: tempApigwConfig.customDomains
+    environment: tempApigwConfig.environment || 'release'
   })
 
   return {
     region,
-    ...yamlToSdkInputs({ instance, sourceInputs: inputs, faasConfig, apigwConfig })
+    ...yamlToSdkInputs({ instance, faasConfig, apigwConfig })
   }
 }
 

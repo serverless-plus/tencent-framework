@@ -20,7 +20,16 @@ const frameworks = {
     runtime: 'Nodejs10.15',
     defaultEntryFile: 'sls.js',
     defaultStatics: [{ src: 'public', targetDir: '/' }],
-    EGG_APP_CONFIG: '{"rundir":"/tmp","logger":{"dir":"/tmp"}}'
+    defaultEnvs: [
+      {
+        key: 'SERVERLESS',
+        value: '1'
+      },
+      {
+        key: 'EGG_APP_CONFIG',
+        value: '{"rundir":"/tmp","logger":{"dir":"/tmp"}'
+      }
+    ]
   },
   nest: {
     injectSlsSdk: true,
@@ -56,7 +65,29 @@ const frameworks = {
     injectSlsSdk: false,
     templateUrl:
       'https://serverless-templates-1300862921.cos.ap-beijing.myqcloud.com/laravel-demo.zip',
-    runtime: 'Php7'
+    runtime: 'Php7',
+    defaultEnvs: [
+      {
+        key: 'SERVERLESS',
+        value: '1'
+      },
+      {
+        key: 'VIEW_COMPILED_PATH',
+        value: '/tmp/storage/framework/views'
+      },
+      {
+        key: 'SESSION_DRIVER',
+        value: 'array'
+      },
+      {
+        key: 'LOG_CHANNEL',
+        value: 'stderr'
+      },
+      {
+        key: 'APP_STORAGE',
+        value: '/tmp'
+      }
+    ]
   },
   thinkphp: {
     injectSlsSdk: false,
@@ -88,6 +119,12 @@ const CONFIGS = {
   timeout: 10,
   memorySize: 128,
   namespace: 'default',
+  defaultEnvs: [
+    {
+      key: 'SERVERLESS',
+      value: '1'
+    }
+  ],
   cos: {
     lifecycle: [
       {
