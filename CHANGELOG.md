@@ -1,3 +1,10 @@
+## [0.1.6](https://github.com/serverless-plus/tencent-framework/compare/v0.1.5...v0.1.6) (2020-12-04)
+
+
+### Bug Fixes
+
+* laravel support no migration ([7c92990](https://github.com/serverless-plus/tencent-framework/commit/7c929908f100710924e7989bfd05e1524a2b4feb))
+
 ## [0.1.5](https://github.com/serverless-plus/tencent-framework/compare/v0.1.4...v0.1.5) (2020-11-26)
 
 
