@@ -1,3 +1,10 @@
+## [0.1.7](https://github.com/serverless-plus/tencent-framework/compare/v0.1.6...v0.1.7) (2020-12-15)
+
+
+### Bug Fixes
+
+* update deploy and remove flow ([#10](https://github.com/serverless-plus/tencent-framework/issues/10)) ([831236a](https://github.com/serverless-plus/tencent-framework/commit/831236ab9e51ecd6e68c8742f37ebdd76a98505a))
+
 ## [0.1.6](https://github.com/serverless-plus/tencent-framework/compare/v0.1.5...v0.1.6) (2020-12-04)
 
 
