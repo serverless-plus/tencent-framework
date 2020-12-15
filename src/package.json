@@ -3,7 +3,7 @@
     "adm-zip": "^0.4.16",
     "download": "^8.0.0",
     "fs-extra": "^9.0.1",
-    "tencent-component-toolkit": "^1.19.4",
+    "tencent-component-toolkit": "^1.19.8",
     "type": "^2.0.0"
   }
 }
