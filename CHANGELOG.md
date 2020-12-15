@@ -1,3 +1,10 @@
+## [0.1.8](https://github.com/serverless-plus/tencent-framework/compare/v0.1.7...v0.1.8) (2020-12-15)
+
+
+### Bug Fixes
+
+* apigw created state ([00a14fa](https://github.com/serverless-plus/tencent-framework/commit/00a14fa9c625656e1a434d095252d8e99c4bca45))
+
 ## [0.1.7](https://github.com/serverless-plus/tencent-framework/compare/v0.1.6...v0.1.7) (2020-12-15)
 
 
