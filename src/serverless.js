@@ -157,7 +157,7 @@ class ServerlessComponent extends Component {
       // different region deployment has different service id
       const apigwOutput = await apigw.deploy(deepClone(apigwInputs))
       const outputs = {
-        created: true,
+        created: apigwOutput.created,
         url: `${getDefaultProtocol(apigwInputs.protocols)}://${apigwOutput.subDomain}/${
           apigwOutput.environment
         }${apigwInputs.endpoints[0].path}`,
@@ -333,12 +333,9 @@ class ServerlessComponent extends Component {
     if (apigwState.isDisabled !== true) {
       const serviceId = apigwState.id || apigwState.serviceId
       if (serviceId) {
-        let apis = apigwState.apis || apigwState.apiList || []
-        apis = apis.map((item) => {
-          item.created = true
-          return item
-        })
+        const apis = apigwState.apis || apigwState.apiList || []
         await apigw.remove({
+          created: apigwState.created,
           serviceId: serviceId,
           environment: apigwState.environment,
           apiList: apis,
