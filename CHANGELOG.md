@@ -1,3 +1,10 @@
+## [0.1.9](https://github.com/serverless-plus/tencent-framework/compare/v0.1.8...v0.1.9) (2021-02-01)
+
+
+### Bug Fixes
+
+* egg default env bug ([c957906](https://github.com/serverless-plus/tencent-framework/commit/c957906b33d244ac2a6e139b275471ce0502cc3b))
+
 ## [0.1.8](https://github.com/serverless-plus/tencent-framework/compare/v0.1.7...v0.1.8) (2020-12-15)
 
 
