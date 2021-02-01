@@ -27,7 +27,7 @@ const frameworks = {
       },
       {
         key: 'EGG_APP_CONFIG',
-        value: '{"rundir":"/tmp","logger":{"dir":"/tmp"}'
+        value: '{"rundir":"/tmp","logger":{"dir":"/tmp"}}'
       }
     ]
   },
